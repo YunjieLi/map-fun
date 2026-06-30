@@ -26,9 +26,9 @@ const token =
   readTokenFromEnvFile()
 
 const targets = [
-  'src/maps/swordsmen/mapbox-config.js',
-  'src/maps/swordsmen/archive/mapbox-config.js',
-  'src/maps/spanish-missions/mapbox-config.js',
+  'src/swordsmen/mapbox-config.js',
+  'src/swordsmen/archive/mapbox-config.js',
+  'src/spanish-missions/mapbox-config.js',
 ]
 
 const content = [

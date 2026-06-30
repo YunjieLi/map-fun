@@ -1,6 +1,6 @@
 # Map Fun
 
-Historical and data maps, split out of [upstream.land](https://github.com/YunjieLi/yunjieli.github.io) into their own repo. Uses the same React + Vite + Tailwind + shadcn scaffold as the parent site; the individual maps under `src/maps/*` remain standalone vanilla HTML/JS pages (mapbox-gl, d3, deck.gl) loaded via an iframe (`src/pages/LegacyPage.tsx`).
+Historical and data maps, split out of [upstream.land](https://github.com/YunjieLi/yunjieli.github.io) into their own repo. Uses the same React + Vite + Tailwind + shadcn scaffold as the parent site; each map under `src/<map-name>/` is a standalone vanilla HTML/JS page (mapbox-gl, d3, deck.gl) loaded via an iframe (`src/app/LegacyPage.tsx`).
 
 ## Setup
 

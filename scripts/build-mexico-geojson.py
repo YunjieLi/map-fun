@@ -18,7 +18,7 @@ from shapely.ops import unary_union
 from shapely.validation import make_valid
 
 ROOT = Path(__file__).resolve().parents[1]
-MAPS = ROOT / "src/maps/spanish-missions"
+MAPS = ROOT / "src/spanish-missions"
 LAYERS = MAPS / "layers"
 COUNTRIES = MAPS / "references/countries.geojson"
 US_1840 = LAYERS / "context-us_state_1840.geojson"

@@ -3,8 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const eventsPath = path.join(root, 'src/maps/swordsmen/events.geojson');
-const locationsPath = path.join(root, 'src/maps/swordsmen/locations.geojson');
+const eventsPath = path.join(root, 'src/swordsmen/events.geojson');
+const locationsPath = path.join(root, 'src/swordsmen/locations.geojson');
 const shouldWrite = process.argv.includes('--write');
 
 function readGeojson(filePath) {

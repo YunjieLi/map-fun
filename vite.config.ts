@@ -15,12 +15,12 @@ export default defineConfig({
     tailwindcss(),
     viteStaticCopy({
       targets: [
-        { src: 'src/maps/kings',      dest: 'src/maps' },
-        { src: 'src/maps/swordsmen',  dest: 'src/maps' },
-        { src: 'src/maps/spanish-missions', dest: 'src/maps' },
-        { src: 'src/maps/deck-tests', dest: 'src/maps' },
-        { src: 'src/maps/liancheng',  dest: 'src/maps' },
-        { src: 'src/maps/mapbox',     dest: 'src/maps' },
+        { src: 'src/kings', dest: 'src' },
+        { src: 'src/swordsmen', dest: 'src' },
+        { src: 'src/spanish-missions', dest: 'src' },
+        { src: 'src/deck-tests', dest: 'src' },
+        { src: 'src/liancheng', dest: 'src' },
+        { src: 'src/mapbox', dest: 'src' },
         { src: 'favicon.ico', dest: '.' },
       ],
     }),

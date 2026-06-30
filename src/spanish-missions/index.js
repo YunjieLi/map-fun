@@ -510,6 +510,7 @@ function setupPolygonLayerInteractions(layerId, buildPopupHtmlFn) {
 		offset: 12,
 		className: 'mission-popup',
 	});
+	layerHoverPopups.push(popup);
 
 	map.on('mouseenter', layerId, function() {
 		map.getCanvas().style.cursor = 'pointer';
@@ -526,6 +527,12 @@ function setupPolygonLayerInteractions(layerId, buildPopupHtmlFn) {
 			return;
 		}
 		if (!event.features || !event.features.length) return;
+		if (isMobileLayout()) {
+			dismissHoverTooltipsExcept('layer');
+			layerHoverPopups.forEach(function(otherPopup) {
+				if (otherPopup !== popup) otherPopup.remove();
+			});
+		}
 		popup
 			.setLngLat(event.lngLat)
 			.setHTML(buildPopupHtmlFn(event.features[0].properties))
@@ -564,7 +571,28 @@ var ENGLISH_SETTLEMENT_LAYER_IDS = ['english-settlements-symbols'];
 var SILVER_MINE_LAYER_IDS = ['silver-mines-symbols'];
 var MISSION_HOVER_PAD_PX = 14;
 var markerPopupsByKey = {};
+var layerHoverPopups = [];
+var nationalCapitalHoverPopup = null;
+var mobileLayoutQuery = window.matchMedia('(max-width: 640px)');
 var missionsVisible = true;
+
+function isMobileLayout() {
+	return mobileLayoutQuery.matches;
+}
+
+function dismissHoverTooltipsExcept(exceptKind) {
+	if (!isMobileLayout()) return;
+	if (exceptKind !== 'markers') syncMarkerPopups([]);
+	if (exceptKind !== 'layer') {
+		layerHoverPopups.forEach(function(popup) {
+			popup.remove();
+		});
+	}
+	if (exceptKind !== 'capital' && nationalCapitalHoverPopup) {
+		nationalCapitalHoverPopup.remove();
+	}
+	if (exceptKind !== 'timeline') clearTimelineEventTooltips();
+}
 
 var MISSION_HQ_ICON_OFFSET = [-1.25, 1.25];
 var PRESIDIO_CAPITAL_ICON_OFFSET = [1.25, -1.25];
@@ -867,7 +895,7 @@ function getVisibleNationalCapitalsGeojson() {
 		features.push({
 			type: 'Feature',
 			geometry: { type: 'Point', coordinates: MEXICO_CITY_COORDS },
-			properties: { name: 'Mexico City', iconImage: 'capital-new-spain' },
+			properties: { name: 'Mexico City', subtext: 'Mexico City · 1535', iconImage: 'capital-new-spain' },
 		});
 	}
 
@@ -875,7 +903,7 @@ function getVisibleNationalCapitalsGeojson() {
 		features.push({
 			type: 'Feature',
 			geometry: { type: 'Point', coordinates: MEXICO_CITY_COORDS },
-			properties: { name: 'Mexico City', iconImage: 'capital-mexico' },
+			properties: { name: 'Mexico City', subtext: 'Mexico City · 1535', iconImage: 'capital-mexico' },
 		});
 	}
 
@@ -967,7 +995,7 @@ function addNationalCapitalLayers() {
 
 function buildCapitalPopupHtml(props) {
 	var country = NATIONAL_CAPITAL_COUNTRY_LABELS[props.iconImage] || '';
-	var capital = props.name || '';
+	var capital = props.subtext || props.name || '';
 	return (
 		'<div class="mission-popup__name">' + country + '</div>' +
 		(capital ? '<div class="mission-popup__detail">' + capital + '</div>' : '')
@@ -981,6 +1009,7 @@ function setupNationalCapitalInteractions() {
 		offset: 12,
 		className: 'mission-popup',
 	});
+	nationalCapitalHoverPopup = popup;
 
 	['national-capitals-symbols', 'national-capitals-new-spain-symbols'].forEach(function(layerId) {
 		map.on('mouseenter', layerId, function() {
@@ -998,6 +1027,7 @@ function setupNationalCapitalInteractions() {
 				return;
 			}
 			if (!event.features || !event.features.length) return;
+			if (isMobileLayout()) dismissHoverTooltipsExcept('capital');
 			var props = event.features[0].properties;
 			popup
 				.setLngLat(event.lngLat)
@@ -2687,6 +2717,8 @@ function setupTimelineEventHover() {
 		Array.prototype.forEach.call(eventsEl.querySelectorAll('.timeline-event'), function(btn) {
 			btn.classList.toggle('is-tooltip-visible', btn === hovered);
 		});
+
+		if (hovered && isMobileLayout()) dismissHoverTooltipsExcept('timeline');
 	});
 
 	wrap.addEventListener('pointerleave', clearTimelineEventTooltips);
@@ -2821,6 +2853,12 @@ function pickClosestRenderedFeature(features, point) {
 
 function pickClosestMarkerPair(point) {
 	var features = getHoveredMarkerFeatures(point);
+	if (!features.length) return [];
+
+	if (isMobileLayout()) {
+		return [pickClosestRenderedFeature(features, point)];
+	}
+
 	var missions = [];
 	var presidios = [];
 
@@ -2962,6 +3000,8 @@ function syncMarkerPopups(features) {
 	var pairs = [];
 	if (missionFeature) pairs.push({ kind: 'mission', feature: missionFeature });
 	if (presidioFeature) pairs.push({ kind: 'presidio', feature: presidioFeature });
+
+	if (pairs.length && isMobileLayout()) dismissHoverTooltipsExcept('markers');
 
 	pairs.forEach(function(pair) {
 		var key = pair.kind;
@@ -3107,8 +3147,6 @@ function clearMapLocationHash() {
 }
 
 function setupMobileMapUiCollapse() {
-	var mobileQuery = window.matchMedia('(max-width: 640px)');
-
 	function setupPanel(panel, toggleBtn, defaultCollapsed, extraToggleBtn) {
 		if (!panel || !toggleBtn) return;
 		var toggleBtns = [toggleBtn, extraToggleBtn].filter(Boolean);
@@ -3121,7 +3159,7 @@ function setupMobileMapUiCollapse() {
 		}
 
 		function applyViewportState() {
-			if (mobileQuery.matches) {
+			if (mobileLayoutQuery.matches) {
 				setCollapsed(defaultCollapsed);
 			} else {
 				panel.classList.remove('is-collapsed');
@@ -3133,15 +3171,15 @@ function setupMobileMapUiCollapse() {
 
 		toggleBtns.forEach(function(btn) {
 			btn.addEventListener('click', function() {
-				if (!mobileQuery.matches) return;
+				if (!mobileLayoutQuery.matches) return;
 				setCollapsed(!panel.classList.contains('is-collapsed'));
 			});
 		});
 
-		if (typeof mobileQuery.addEventListener === 'function') {
-			mobileQuery.addEventListener('change', applyViewportState);
-		} else if (typeof mobileQuery.addListener === 'function') {
-			mobileQuery.addListener(applyViewportState);
+		if (typeof mobileLayoutQuery.addEventListener === 'function') {
+			mobileLayoutQuery.addEventListener('change', applyViewportState);
+		} else if (typeof mobileLayoutQuery.addListener === 'function') {
+			mobileLayoutQuery.addListener(applyViewportState);
 		}
 
 		applyViewportState();

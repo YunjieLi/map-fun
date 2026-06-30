@@ -1292,6 +1292,18 @@
             .readme-modal__content {
                 padding: 1rem 3rem 1.25rem 1rem;
             }
+
+            .timeline-event:hover .timeline-event__tooltip,
+            .timeline-event:focus-visible .timeline-event__tooltip {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .timeline-event:hover .timeline-event__mark,
+            .timeline-event:focus-visible .timeline-event__mark {
+                height: 1.125rem;
+                opacity: 0.75;
+            }
         }
     </style>
 </head>

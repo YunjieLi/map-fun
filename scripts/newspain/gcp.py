@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from svg_geom import parse_svg  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-REFERENCES = ROOT / "src/maps/spanish-missions/references"
+REFERENCES = ROOT / "src/spanish-missions/references"
 
 # Reliable *point* city labels only (not region labels). Modern lon/lat.
 CITY_GCPS: dict[str, tuple[float, float]] = {

@@ -25,7 +25,7 @@ import extract  # noqa: E402
 import gcp as G  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT_DIR = ROOT / "src/maps/spanish-missions"
+OUT_DIR = ROOT / "src/spanish-missions"
 
 MIN_RING_AREA_PX = 8.0       # drop drafting specks
 MIN_RING_AREA_DEG = 0.002    # drop tiny warped slivers

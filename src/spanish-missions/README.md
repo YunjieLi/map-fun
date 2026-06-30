@@ -25,14 +25,18 @@ Along the Alta California coast, the mission and the presidio worked as a dual s
 
 Spanish colonial rule was explicitly tailored by region. The Mission-Presidio system worked in frontier provinces like **the Californias and Texas**, whereas **New Mexico** relied on a Pueblo-Centered Civil System, governing through dense, pre-existing agricultural towns. Meanwhile, in **core Mexico**, Spain utilized large civil bureaucracies and cathedral cities built directly on top of advanced Mesoamerican state structures. In contrast, **the Caribbean and Florida** functioned as a Maritime Defensive Network, relying on heavily fortified port cities garrisoned by regular troops to protect vital shipping lanes.
 
-## Monterey + Carmel
+## Monterey x Carmel
 
 Within this coastal network, the neighboring sites of Monterey and Carmel were selected as the twin capitals of Spanish California:
 
 - **Monterey - the political capital:** Chosen for its large, protected deep-water bay, Monterey became the official military and political capital of Alta California. Its presidio allowed Spanish governors to monitor incoming supply ships and defend the strategic center of the coast from foreign empires.
 - **Carmel - the mission headquarters:** Located just a few miles south, Mission Carmel served as the administrative headquarters for all 21 Alta California missions. It was selected by Father Junípero Serra because the site offered fertile agricultural land, a reliable freshwater source from the Carmel River, and a safer distance from the secular military influence of the Monterey garrison.
 
+Spain chose Monterey as its capital based on exaggerated 1602 maritime records praising its bay as a perfect harbor. At the time, the far superior San Francisco Bay remained undiscovered, hidden from passing ships by dense coastal fog. Monterey held its crown until the 1848 Gold Rush permanently shifted California’s center northward to San Francisco.
+
 ---
+
+
 
 ## To read more
 
@@ -40,6 +44,8 @@ Within this coastal network, the neighboring sites of Monterey and Carmel were s
 2. Evolution of US territorries [https://en.wikipedia.org/wiki/Territorial_evolution_of_the_United_States](https://en.wikipedia.org/wiki/Territorial_evolution_of_the_United_States)
 3. More on the history of New Spain [https://smarthistory.org/new-spain/](https://smarthistory.org/new-spain/)
 4. El Camino Real [https://en.wikipedia.org/wiki/El_Camino_Real](https://en.wikipedia.org/wiki/El_Camino_Real)
+
+
 
 ## Map data sources
 

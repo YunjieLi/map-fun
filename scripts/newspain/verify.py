@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-MAPS = ROOT / "src/maps/spanish-missions"
+MAPS = ROOT / "src/spanish-missions"
 CACHE = ROOT / "scripts/.cache/new-spain"
 REF = ROOT / "scripts/.cache/ref/ne_50m_coastline.geojson"
 VIEW = dict(lon=(-130, -58), lat=(5, 52))
