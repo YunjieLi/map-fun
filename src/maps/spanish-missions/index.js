@@ -2371,6 +2371,8 @@ function updateTimelinePositions() {
 function updateTimelineUi() {
 	var label = document.getElementById('timeline__label');
 	if (label) label.textContent = String(selectedYear);
+	var headerLabel = document.getElementById('timeline__header-label');
+	if (headerLabel) headerLabel.textContent = String(selectedYear);
 	updateTimelineTickStates();
 	updateTimelineControls();
 	updateTimelineProgress();
@@ -2531,26 +2533,32 @@ function stepTimelineMilestone(delta) {
 	if (year != null) setTimelineYear(year);
 }
 
+function getTimelinePlayButtons() {
+	return [
+		document.getElementById('timeline__play'),
+		document.getElementById('timeline__play-header'),
+	].filter(Boolean);
+}
+
 function updateTimelineControls() {
-	var playBtn = document.getElementById('timeline__play');
 	var prevBtn = document.getElementById('timeline__prev');
 	var nextBtn = document.getElementById('timeline__next');
 
 	if (prevBtn) prevBtn.disabled = getAdjacentMilestoneYear(-1) == null;
 	if (nextBtn) nextBtn.disabled = getAdjacentMilestoneYear(1) == null;
 
-	if (!playBtn) return;
+	getTimelinePlayButtons().forEach(function(playBtn) {
+		if (timelinePlaying) {
+			setButtonIcon(playBtn, 'pause');
+			playBtn.setAttribute('aria-label', 'Pause timeline');
+			playBtn.disabled = false;
+			return;
+		}
 
-	if (timelinePlaying) {
-		setButtonIcon(playBtn, 'pause');
-		playBtn.setAttribute('aria-label', 'Pause timeline');
-		playBtn.disabled = false;
-		return;
-	}
-
-	setButtonIcon(playBtn, 'play');
-	playBtn.setAttribute('aria-label', 'Play timeline');
-	playBtn.disabled = selectedYear >= maxYear && minYear >= maxYear;
+		setButtonIcon(playBtn, 'play');
+		playBtn.setAttribute('aria-label', 'Play timeline');
+		playBtn.disabled = selectedYear >= maxYear && minYear >= maxYear;
+	});
 }
 
 function stopTimelineAnimation() {
@@ -2687,7 +2695,6 @@ function setupTimelineEventHover() {
 function setupTimeline() {
 	var slider = document.getElementById('timeline__range');
 	var eventsEl = document.getElementById('timeline__events');
-	var playBtn = document.getElementById('timeline__play');
 	var prevBtn = document.getElementById('timeline__prev');
 	var nextBtn = document.getElementById('timeline__next');
 	if (!slider) return;
@@ -2732,9 +2739,9 @@ function setupTimeline() {
 		setTimelineYear(Number(slider.value));
 	});
 
-	if (playBtn) {
-		playBtn.addEventListener('click', playTimelineAnimation);
-	}
+	getTimelinePlayButtons().forEach(function(playButton) {
+		playButton.addEventListener('click', playTimelineAnimation);
+	});
 
 	if (prevBtn) {
 		prevBtn.addEventListener('click', function() {
@@ -3099,6 +3106,58 @@ function clearMapLocationHash() {
 	history.replaceState(null, '', window.location.pathname + window.location.search);
 }
 
+function setupMobileMapUiCollapse() {
+	var mobileQuery = window.matchMedia('(max-width: 640px)');
+
+	function setupPanel(panel, toggleBtn, defaultCollapsed, extraToggleBtn) {
+		if (!panel || !toggleBtn) return;
+		var toggleBtns = [toggleBtn, extraToggleBtn].filter(Boolean);
+
+		function setCollapsed(collapsed) {
+			panel.classList.toggle('is-collapsed', collapsed);
+			toggleBtns.forEach(function(btn) {
+				btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+			});
+		}
+
+		function applyViewportState() {
+			if (mobileQuery.matches) {
+				setCollapsed(defaultCollapsed);
+			} else {
+				panel.classList.remove('is-collapsed');
+				toggleBtns.forEach(function(btn) {
+					btn.setAttribute('aria-expanded', 'true');
+				});
+			}
+		}
+
+		toggleBtns.forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				if (!mobileQuery.matches) return;
+				setCollapsed(!panel.classList.contains('is-collapsed'));
+			});
+		});
+
+		if (typeof mobileQuery.addEventListener === 'function') {
+			mobileQuery.addEventListener('change', applyViewportState);
+		} else if (typeof mobileQuery.addListener === 'function') {
+			mobileQuery.addListener(applyViewportState);
+		}
+
+		applyViewportState();
+	}
+
+	setupPanel(document.getElementById('legend'), document.getElementById('legend__toggle'), true);
+	setupPanel(
+		document.getElementById('timeline'),
+		document.getElementById('timeline__toggle'),
+		true,
+		document.getElementById('timeline__toggle-expanded')
+	);
+}
+
+setupMobileMapUiCollapse();
+
 function initMap() {
 	clearMapLocationHash();
 
@@ -3111,7 +3170,7 @@ function initMap() {
 	});
 
 	map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-	map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
+	map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'top-left');
 
 	map.on('load', function() {
 		addProvinciaRegionLayers();

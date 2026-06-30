@@ -233,10 +233,14 @@
             background-color: rgb(255 255 255 / 8%);
         }
 
-        .mapboxgl-ctrl-bottom-right {
-            bottom: 0.75rem;
-            right: 0.75rem;
+        .mapboxgl-ctrl-top-left {
+            top: 0;
+            left: 0;
             z-index: 2;
+        }
+
+        .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-attrib.mapboxgl-compact {
+            margin: 10px 0 0 10px;
         }
 
         .mapboxgl-ctrl-attrib.mapboxgl-compact {
@@ -260,13 +264,15 @@
 
         #map-ui {
             position: absolute;
-            left: 0.75rem;
-            right: 0.75rem;
-            bottom: 0.75rem;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 1;
             display: flex;
+            flex-direction: row;
             align-items: flex-end;
             gap: 0.75rem;
+            padding: 0 0.75rem 0.75rem;
             pointer-events: none;
         }
 
@@ -285,12 +291,47 @@
             color: var(--foreground);
         }
 
-        #legend > div:first-child {
+        #legend .map-panel__header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
+        }
+
+        .map-panel__actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .map-panel__toggle {
+            display: none;
+        }
+
+        .map-panel__toggle .icon {
+            transition: transform 150ms ease;
+        }
+
+        .map-panel__toggle[aria-expanded="true"] .icon {
+            transform: rotate(180deg);
+        }
+
+        .map-panel__header--timeline {
+            display: none;
+        }
+
+        .timeline__play-header {
+            display: none;
+        }
+
+        .map-panel__body--timeline {
+            display: contents;
+        }
+
+        #legend .map-panel__body {
+            display: contents;
         }
 
         #legend h2 {
@@ -438,7 +479,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-right: 2.5rem;
             padding: 0.75rem;
             border-radius: var(--radius-lg);
             background: var(--surface);
@@ -1115,8 +1155,104 @@
                 align-items: stretch;
             }
 
+            #legend {
+                width: 100%;
+            }
+
+            #legend .map-panel__header {
+                gap: 0.375rem;
+                margin-bottom: 0.375rem;
+            }
+
+            #legend.is-collapsed .map-panel__header {
+                margin-bottom: 0;
+            }
+
+            #legend h2 {
+                margin: 0;
+                font-size: 1rem;
+                line-height: 1.25rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            #legend .map-panel__toggle {
+                display: inline-flex;
+            }
+
+            #legend.is-collapsed .map-panel__body {
+                display: none;
+            }
+
+            #legend:not(.is-collapsed) .map-panel__body {
+                display: block;
+            }
+
             #timeline {
+                flex-wrap: nowrap;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 0;
+            }
+
+            #timeline .map-panel__header--timeline {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem;
+            }
+
+            #timeline .map-panel__title {
+                font-size: 1rem;
+                font-weight: 600;
+                line-height: 1.375rem;
+                color: var(--foreground);
+            }
+
+            #timeline .map-panel__summary {
+                margin-left: auto;
+                font-size: 1rem;
+                font-weight: 500;
+                line-height: 1.375rem;
+                font-variant-numeric: tabular-nums;
+                color: var(--foreground);
+            }
+
+            .timeline__play-header {
+                display: inline-flex;
+                flex-shrink: 0;
+            }
+
+            #timeline .map-panel__toggle {
+                display: inline-flex;
+            }
+
+            #timeline.is-collapsed .map-panel__body--timeline {
+                display: none;
+            }
+
+            #timeline:not(.is-collapsed) .map-panel__header--timeline {
+                display: none;
+            }
+
+            #timeline:not(.is-collapsed) .map-panel__body--timeline {
+                display: flex;
                 flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem;
+            }
+
+            .timeline__toggle-expanded {
+                display: none;
+            }
+
+            #timeline:not(.is-collapsed) .timeline__toggle-expanded {
+                display: inline-flex;
+                order: 6;
+                margin-left: auto;
             }
 
             #timeline__track {
@@ -1139,6 +1275,23 @@
             #timeline__next {
                 order: 5;
             }
+
+            .readme-modal {
+                padding: 0;
+            }
+
+            .readme-modal__panel {
+                width: 100%;
+                height: 100%;
+                max-height: none;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+
+            .readme-modal__content {
+                padding: 1rem 3rem 1.25rem 1rem;
+            }
         }
     </style>
 </head>
@@ -1147,10 +1300,14 @@
     <div id="map">
         <div id="map-ui">
         <div id="legend">
-            <div>
+            <div class="map-panel__header">
                 <h2></h2>
-                <button type="button" id="legend__info" class="btn btn-icon btn-icon-sm btn-ghost" aria-label="About this map"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg></button>
+                <div class="map-panel__actions">
+                    <button type="button" id="legend__info" class="btn btn-icon btn-icon-sm btn-ghost" aria-label="About this map"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg></button>
+                    <button type="button" id="legend__toggle" class="btn btn-icon btn-icon-sm btn-ghost map-panel__toggle" aria-label="Toggle legend" aria-expanded="false" aria-controls="legend__body"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+                </div>
             </div>
+            <div id="legend__body" class="map-panel__body">
             <div class="legend-row">
                 <button type="button" class="legend-row__symbol" data-locate="missions" aria-label="Zoom to Mission"><span class="legend-mission" aria-hidden="true"></span></button>
                 <span class="legend-row__label">Mission</span>
@@ -1183,8 +1340,16 @@
                 <button type="button" class="legend-row__symbol" data-locate="california" aria-label="Zoom to California today"><span class="legend-region legend-region--california" aria-hidden="true"></span></button>
                 <span class="legend-row__label">California today</span>
             </div>
+            </div>
         </div>
         <div id="timeline">
+            <div class="map-panel__header map-panel__header--timeline">
+                <span class="map-panel__title">Timeline</span>
+                <button type="button" id="timeline__play-header" class="btn btn-icon btn-ghost timeline__play-header" aria-label="Play timeline"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a1 1 0 0 1 1.528-.852l12 7a1 1 0 0 1 0 1.704l-12 7A1 1 0 0 1 5 19z"></path></svg></button>
+                <span id="timeline__header-label" class="map-panel__summary">1610</span>
+                <button type="button" id="timeline__toggle" class="btn btn-icon btn-ghost map-panel__toggle" aria-label="Toggle timeline" aria-expanded="false" aria-controls="timeline__body"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+            </div>
+            <div id="timeline__body" class="map-panel__body map-panel__body--timeline">
             <button type="button" id="timeline__prev" class="btn btn-icon btn-ghost" aria-label="Previous milestone"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
             <button type="button" id="timeline__play" class="btn btn-icon btn-ghost" aria-label="Play timeline"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a1 1 0 0 1 1.528-.852l12 7a1 1 0 0 1 0 1.704l-12 7A1 1 0 0 1 5 19z"></path></svg></button>
             <span id="timeline__label">1610</span>
@@ -1198,6 +1363,8 @@
                 </div>
             </div>
             <button type="button" id="timeline__next" class="btn btn-icon btn-ghost" aria-label="Next milestone"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+            <button type="button" id="timeline__toggle-expanded" class="btn btn-icon btn-ghost timeline__toggle-expanded map-panel__toggle" aria-label="Collapse timeline" aria-expanded="true" aria-controls="timeline__body"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+            </div>
         </div>
         </div>
     </div>
