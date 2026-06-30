@@ -906,7 +906,7 @@ function getVisibleNationalCapitalsGeojson() {
 		features.push({
 			type: 'Feature',
 			geometry: { type: 'Point', coordinates: MEXICO_CITY_COORDS },
-			properties: { name: 'Mexico City', subtext: 'Mexico City · 1535', iconImage: 'capital-mexico' },
+			properties: { name: 'Mexico City', subtext: 'Mexico City · 1821', iconImage: 'capital-mexico' },
 		});
 	}
 
