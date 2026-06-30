@@ -6,12 +6,12 @@
       "id": 1,
       "geometry": {
         "type": "Point",
-        "coordinates": [-102.575, 22.7707]
+        "coordinates": [-100.9737, 25.4383]
       },
       "properties": {
-        "name": "Zacatecas",
-        "subtext": "1546 · silver mines",
-        "year": 1546
+        "name": "Saltillo",
+        "subtext": "1577 · the breadbasket",
+        "year": 1577
       }
     }
   ]

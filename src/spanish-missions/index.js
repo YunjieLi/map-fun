@@ -126,6 +126,8 @@ var ENGLISH_SETTLEMENT_SYMBOL_URL = './markers/england.svg';
 var SILVER_MINE_SYMBOL_URL = './markers/silver-mine.svg';
 var SILVER_MINE_MARKER_LOGICAL_SIZE = 160;
 var SILVER_MINE_SIZE_SCALE = 2;
+var AGRICULTURE_SYMBOL_URL = './markers/agriculture.svg';
+var AGRICULTURE_MARKER_LOGICAL_SIZE = 120;
 var NATIONAL_CAPITAL_MARKER_LOGICAL_SIZE = 96;
 var NATIONAL_CAPITAL_MARKER_RADIUS = 28;
 var NATIONAL_CAPITAL_SIZE_SCALE = 0.6;
@@ -569,6 +571,7 @@ var MISSION_LAYER_IDS = ['missions-symbols', 'missions-hq-symbols'];
 var PRESIDIO_LAYER_IDS = ['presidios-symbols', 'presidios-capital-symbols'];
 var ENGLISH_SETTLEMENT_LAYER_IDS = ['english-settlements-symbols'];
 var SILVER_MINE_LAYER_IDS = ['silver-mines-symbols'];
+var AGRICULTURE_LAYER_IDS = ['agricultural-centers-symbols'];
 var MISSION_HOVER_PAD_PX = 14;
 var markerPopupsByKey = {};
 var layerHoverPopups = [];
@@ -1041,6 +1044,7 @@ var missions;
 var presidios;
 var englishSettlements;
 var silverMines;
+var agriculturalCenters;
 var provinciaMayor;
 var provinciaRegionGeojsonCache = {};
 var california;
@@ -2031,6 +2035,39 @@ function loadSilverMineIconImages(callback) {
 	});
 }
 
+function loadAgricultureIconImages(callback) {
+	fetch(AGRICULTURE_SYMBOL_URL, { cache: 'no-cache' }).then(function(response) {
+		if (!response.ok) throw new Error('Failed to load agriculture symbol');
+		return response.blob();
+	}).then(function(blob) {
+		var img = new Image();
+		var objectUrl = URL.createObjectURL(blob);
+		img.onload = function() {
+			URL.revokeObjectURL(objectUrl);
+			var dpr = getMarkerPixelRatio();
+			var logicalSize = img.naturalWidth || AGRICULTURE_MARKER_LOGICAL_SIZE;
+			if (map.hasImage('agriculture')) {
+				map.removeImage('agriculture');
+			}
+			map.addImage(
+				'agriculture',
+				rasterizePresidioMarker(img, logicalSize, dpr),
+				{ pixelRatio: dpr }
+			);
+			callback();
+		};
+		img.onerror = function() {
+			URL.revokeObjectURL(objectUrl);
+			console.error('Failed to decode agriculture symbol:', AGRICULTURE_SYMBOL_URL);
+			callback();
+		};
+		img.src = objectUrl;
+	}).catch(function(error) {
+		console.error(error);
+		callback();
+	});
+}
+
 function loadMissionIconImages(callback) {
 	ensureMissionIconImages(callback);
 }
@@ -2288,6 +2325,18 @@ function getVisibleSilverMinesGeojson() {
 	};
 }
 
+function getVisibleAgriculturalCenterFeatures() {
+	if (!agriculturalCenters) return [];
+	return agriculturalCenters.features;
+}
+
+function getVisibleAgriculturalCentersGeojson() {
+	return {
+		type: 'FeatureCollection',
+		features: getVisibleAgriculturalCenterFeatures(),
+	};
+}
+
 function getVisibleElCaminoRealFeatures() {
 	if (!elCaminoReal) return [];
 	return elCaminoReal.features.filter(function(feature) {
@@ -2312,6 +2361,13 @@ function buildEnglishSettlementPopupHtml(props) {
 }
 
 function buildSilverMinePopupHtml(props) {
+	return (
+		'<div class="mission-popup__name">' + props.name + '</div>' +
+		(props.subtext ? '<div class="mission-popup__detail">' + props.subtext + '</div>' : '')
+	);
+}
+
+function buildAgriculturePopupHtml(props) {
 	return (
 		'<div class="mission-popup__name">' + props.name + '</div>' +
 		(props.subtext ? '<div class="mission-popup__detail">' + props.subtext + '</div>' : '')
@@ -2653,6 +2709,9 @@ function updateMissionData() {
 	if (map.getSource('silver-mines')) {
 		map.getSource('silver-mines').setData(getVisibleSilverMinesGeojson());
 	}
+	if (map.getSource('agricultural-centers')) {
+		map.getSource('agricultural-centers').setData(getVisibleAgriculturalCentersGeojson());
+	}
 	if (map.getSource('provincia-regions')) {
 		map.getSource('provincia-regions').setData(getVisibleProvinciaRegionGeojson());
 	}
@@ -2888,6 +2947,10 @@ function isSilverMineMarkerLayer(layerId) {
 	return SILVER_MINE_LAYER_IDS.indexOf(layerId) !== -1;
 }
 
+function isAgricultureMarkerLayer(layerId) {
+	return AGRICULTURE_LAYER_IDS.indexOf(layerId) !== -1;
+}
+
 function getMarkerFeatureKey(feature) {
 	var kind = 'mission';
 	if (isPresidioMarkerLayer(feature.layer.id)) {
@@ -2896,6 +2959,8 @@ function getMarkerFeatureKey(feature) {
 		kind = 'settlement';
 	} else if (isSilverMineMarkerLayer(feature.layer.id)) {
 		kind = 'silver-mine';
+	} else if (isAgricultureMarkerLayer(feature.layer.id)) {
+		kind = 'agriculture';
 	}
 	return kind + ':' + (feature.properties.name || feature.id || '');
 }
@@ -2915,6 +2980,7 @@ function getHoveredMarkerFeatures(point) {
 	var presidioLayers = getVisibleMarkerLayers(PRESIDIO_LAYER_IDS);
 	var settlementLayers = getVisibleMarkerLayers(ENGLISH_SETTLEMENT_LAYER_IDS);
 	var silverMineLayers = getVisibleMarkerLayers(SILVER_MINE_LAYER_IDS);
+	var agricultureLayers = getVisibleMarkerLayers(AGRICULTURE_LAYER_IDS);
 	var features = [];
 
 	if (missionLayers.length) {
@@ -2937,6 +3003,11 @@ function getHoveredMarkerFeatures(point) {
 			map.queryRenderedFeatures(queryBBoxAroundPoint(point, MISSION_HOVER_PAD_PX), { layers: silverMineLayers })
 		);
 	}
+	if (agricultureLayers.length) {
+		features = features.concat(
+			map.queryRenderedFeatures(queryBBoxAroundPoint(point, MISSION_HOVER_PAD_PX), { layers: agricultureLayers })
+		);
+	}
 
 	return dedupeMarkerFeatures(features);
 }
@@ -2954,6 +3025,9 @@ function buildMarkerPopupHtml(feature) {
 	}
 	if (isSilverMineMarkerLayer(feature.layer.id)) {
 		return buildSilverMinePopupHtml(feature.properties);
+	}
+	if (isAgricultureMarkerLayer(feature.layer.id)) {
+		return buildAgriculturePopupHtml(feature.properties);
 	}
 	return buildPopupHtml(feature.properties);
 }
@@ -3141,6 +3215,37 @@ function addSilverMineLayers() {
 	}
 }
 
+function getAgricultureSymbolLayout() {
+	return {
+		'icon-image': 'agriculture',
+		'icon-size': getZoomScaledIconSizeExpression(
+			getMarkerIconSizeAtReferenceZoom(MISSION_CIRCLE_RADIUS, SILVER_MINE_MARKER_LOGICAL_SIZE) * SILVER_MINE_SIZE_SCALE
+		),
+		'icon-anchor': 'center',
+		'icon-allow-overlap': true,
+		'icon-ignore-placement': true,
+	};
+}
+
+function addAgricultureLayers() {
+	if (!map.getSource('agricultural-centers')) {
+		map.addSource('agricultural-centers', {
+			type: 'geojson',
+			data: getVisibleAgriculturalCentersGeojson(),
+		});
+	}
+
+	if (!map.getLayer('agricultural-centers-symbols')) {
+		map.addLayer({
+			id: 'agricultural-centers-symbols',
+			type: 'symbol',
+			source: 'agricultural-centers',
+			layout: getAgricultureSymbolLayout(),
+			paint: { 'icon-opacity': MISSION_MARKER_OPACITY },
+		});
+	}
+}
+
 function clearMapLocationHash() {
 	if (!window.location.hash) return;
 	history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -3210,7 +3315,12 @@ function initMap() {
 	map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 	map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'top-left');
 
+	window.addEventListener('resize', function() {
+		if (map) map.resize();
+	});
+
 	map.on('load', function() {
+		map.resize();
 		addProvinciaRegionLayers();
 		addProvinciaMayorLayers();
 		addMexicoLayers();
@@ -3244,10 +3354,16 @@ function initMap() {
 			data: getVisibleSilverMinesGeojson(),
 		});
 
+		map.addSource('agricultural-centers', {
+			type: 'geojson',
+			data: getVisibleAgriculturalCentersGeojson(),
+		});
+
 		loadPresidioIconImages(function() {
 			loadMissionIconImages(function() {
 			loadEnglishSettlementIconImages(function() {
 			loadSilverMineIconImages(function() {
+			loadAgricultureIconImages(function() {
 			loadNationalCapitalIconImages(function() {
 			var symbolPaint = { 'icon-opacity': 0.95 };
 
@@ -3272,12 +3388,14 @@ function initMap() {
 			addMissionLayers();
 			addEnglishSettlementLayers();
 			addSilverMineLayers();
+			addAgricultureLayers();
 
 			addNationalCapitalLayers();
 			setupMarkerHoverInteractions();
 			setupNationalCapitalInteractions();
 			setupTimeline();
 			syncLegendLayerVisibility();
+			});
 			});
 			});
 			});
@@ -3339,6 +3457,10 @@ Promise.all([
 		if (!response.ok) throw new Error('Failed to load references/el_camino_real.csv');
 		return response.text();
 	}),
+	fetchData('./layers/agricultural-centers.geojson').then(function(response) {
+		if (!response.ok) throw new Error('Failed to load layers/agricultural-centers.geojson');
+		return response.json();
+	}),
 	fetchData('./layers/silver-mines.geojson').then(function(response) {
 		if (!response.ok) throw new Error('Failed to load layers/silver-mines.geojson');
 		return response.json();
@@ -3350,7 +3472,7 @@ Promise.all([
 	englishSettlements = results[3];
 	provinciaMayor = results[4];
 	california = results[5];
-	applyElCaminoReal(joinElCaminoRealWithCsv(results[6], parseElCaminoRealCsv(results[results.length - 2])));
+	applyElCaminoReal(joinElCaminoRealWithCsv(results[6], parseElCaminoRealCsv(results[results.length - 3])));
 	mexicoByPeriod = {};
 	MEXICO_PERIOD_YEARS.forEach(function(year, index) {
 		mexicoByPeriod[year] = results[7 + index];
@@ -3360,6 +3482,7 @@ Promise.all([
 	US_STATE_DECADES.forEach(function(decade, index) {
 		usStateByDecade[decade] = results[8 + MEXICO_PERIOD_YEARS.length + index];
 	});
+	agriculturalCenters = results[results.length - 2];
 	silverMines = results[results.length - 1];
 	initMap();
 	setupDataModal();
